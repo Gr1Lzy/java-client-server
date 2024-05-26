@@ -5,14 +5,14 @@ import org.example.model.MessageStatistic;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class Server {
     private final ServerSocket serverSocket;
-    private ClientHandler clientHandler;
+    private final List<ClientHandler> clientHandlers = new ArrayList<>();
+
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
@@ -25,7 +25,8 @@ public class Server {
             while (!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Client joined the session!");
-                clientHandler = new ClientHandler(socket);
+                ClientHandler clientHandler = new ClientHandler(socket);
+                clientHandlers.add(clientHandler);
 
                 Thread thread = new Thread(clientHandler);
                 thread.start();
@@ -38,10 +39,15 @@ public class Server {
     private void getCodeWord() {
         Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
-        List<MessageStatistic> messageStatistics;
 
-        if (command.equals("CODEWORD"))
-            messageStatistics = clientHandler.sendSpamToClients(1000);
+        if (command.equals("CODEWORD")) {
+            for (ClientHandler clientHandler : clientHandlers) {
+                clientHandler.sendSpamToClients(1000);
+            }
+        }
+        for (MessageStatistic messageStatistic : ClientHandler.messageStatistics) {
+            System.out.println(messageStatistic);
+        }
 
         getCodeWord();
     }

@@ -6,93 +6,87 @@ import org.example.model.MessageStatus;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class ClientHandler implements Runnable {
     public static List<ClientHandler> clientHandlerList = new CopyOnWriteArrayList<>();
+    public static List<MessageStatistic> messageStatistics;
     private final Socket socket;
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
-    private String username;
+    private final BufferedReader bufferedReader;
+    private final BufferedWriter bufferedWriter;
+    private final String clientId;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
-        try {
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            this.username = bufferedReader.readLine();
-            clientHandlerList.add(this);
-            broadcastMessage(username + " has connected!");
-        } catch (IOException e) {
-            close(socket, bufferedReader, bufferedWriter);
-        }
+        this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        this.clientId = bufferedReader.readLine();
+        clientHandlerList.add(this);
     }
 
     @Override
     public void run() {
         String messageFromClient;
-        while (socket.isConnected()) {
-            try {
-                messageFromClient = bufferedReader.readLine();
+        try {
+            while ((messageFromClient = bufferedReader.readLine()) != null) {
                 broadcastMessage(messageFromClient);
-            } catch (IOException e) {
-                close(socket, bufferedReader, bufferedWriter);
-                break;
             }
+        } catch (IOException e) {
+            close();
         }
     }
 
-    public List<MessageStatistic> sendSpamToClients(int messageCount) {
+    public void sendSpamToClients(int messageCount) {
+        messageStatistics = new ArrayList<>();
         ExecutorService executor = Executors.newFixedThreadPool(clientHandlerList.size());
-        List<MessageStatistic> messageStatistic = new ArrayList<>();
         for (ClientHandler clientHandler : clientHandlerList) {
             executor.execute(() -> {
                 for (int i = 0; i < messageCount; i++) {
                     Message message = new Message("SPAM MESSAGE " + (i + 1));
                     try {
-                        clientHandler.bufferedWriter.write(message +  " for " + clientHandler.username);
+                        clientHandler.bufferedWriter.write(message.getText() + " for " + clientHandler.clientId);
                         clientHandler.bufferedWriter.newLine();
                         clientHandler.bufferedWriter.flush();
-                        messageStatistic.add(new MessageStatistic(clientHandler.username, message, MessageStatus.DELIVERED));
+                        messageStatistics.add(new MessageStatistic(clientHandler.clientId, message, MessageStatus.DELIVERED, LocalDateTime.now()));
 
                     } catch (IOException e) {
                         e.printStackTrace();
-                        messageStatistic.add(new MessageStatistic(clientHandler.username, message, MessageStatus.UNDELIVERED));
+                        messageStatistics.add(new MessageStatistic(clientHandler.clientId, message, MessageStatus.UNDELIVERED, null));
                     }
                 }
             });
         }
 
-        executor.close();
         executor.shutdown();
-
-        return messageStatistic;
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void broadcastMessage(String message) {
         for (ClientHandler clientHandler : clientHandlerList) {
             try {
-                if (!clientHandler.username.equals(username)) {
+                if (!clientHandler.clientId.equals(clientId)) {
                     clientHandler.bufferedWriter.write(message);
                     clientHandler.bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
                 }
             } catch (IOException e) {
-                close(socket, bufferedReader, bufferedWriter);
+                close();
             }
         }
     }
 
     public void removeClientHandler() {
         clientHandlerList.remove(this);
-        broadcastMessage(username + " has disconnected.");
     }
 
-    public void close(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    public void close() {
         removeClientHandler();
         try {
             if (bufferedReader != null) bufferedReader.close();

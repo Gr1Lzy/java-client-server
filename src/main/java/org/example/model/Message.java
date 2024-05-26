@@ -1,13 +1,23 @@
 package org.example.model;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Message {
-    private int id;
-    private String message;
+    private final int id;
+    private final String text;
 
     private static int counter = 0;
 
-    public Message(String message) {
+    public Message(String text) {
         this.id = counter++;
-        this.message = message;
+        this.text = text;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getText() {
+        return text;
     }
 }
