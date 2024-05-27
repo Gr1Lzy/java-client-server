@@ -17,13 +17,12 @@ import static org.example.server.ClientHandler.messageStatistics;
 public class MessageStatisticsHandler implements HttpHandler {
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final int STATUS_OK = 200;
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-
         String jsonResponse = gson.toJson(messageStatistics);
 
         if ("GET".equals(exchange.getRequestMethod())) {

@@ -14,13 +14,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class ClientHandler implements Runnable {
     public static final List<ClientHandler> CLIENT_HANDLER_LIST = new CopyOnWriteArrayList<>();
     public static List<MessageStatistic> messageStatistics;
 
-    private final Logger logger = Logger.getLogger(ClientHandler.class.getName());
     private final Socket socket;
     private final BufferedReader bufferedReader;
     private final BufferedWriter bufferedWriter;

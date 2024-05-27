@@ -46,10 +46,13 @@ public class Server {
     }
 
     private void getCodeWord() {
-        String command = scanner.nextLine();
+        String command = scanner.next();
 
-        if (command.equals("CODEWORD")) {
+        if (command.equals("CODEWORD") && !ClientHandler.CLIENT_HANDLER_LIST.isEmpty()) {
             ClientHandler.sendSpamToClients(1000);
+            System.out.println(ClientHandler.messageStatistics.size());
+        } else {
+            getCodeWord();
         }
     }
 

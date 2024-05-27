@@ -23,7 +23,7 @@ public class Client {
         }
     }
 
-    public void sendMessage() {
+    public void sendUsername() {
         try {
             bufferedWriter.write(username);
             bufferedWriter.newLine();
@@ -64,7 +64,7 @@ public class Client {
             Socket socket = new Socket("localhost", 8081);
             Client client = new Client(socket, text);
             client.listenForMessage();
-            client.sendMessage();
+            client.sendUsername();
         } catch (IOException e) {
             e.printStackTrace();
         }
