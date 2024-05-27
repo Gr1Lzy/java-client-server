@@ -51,9 +51,7 @@ public class Server {
         String command = scanner.next();
 
         if (command.equals("CODEWORD") && !ClientHandler.clientHandlers.isEmpty()) {
-            ClientHandler.sendSpamToClients(1000);
-            logger.log(java.util.logging.Level.INFO,
-                    "Message statistics: {0}", ClientHandler.messageStatistics.size());
+            ClientHandler.sendMessagesToClients(1000);
         } else {
             getCodeWord();
         }

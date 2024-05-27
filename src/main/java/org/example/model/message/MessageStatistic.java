@@ -1,8 +1,6 @@
 package org.example.model.message;
 
-import java.time.LocalDateTime;
-
-public record MessageStatistic(String clientName, Message message, MessageStatus status, LocalDateTime deliveredTime) {
+public record MessageStatistic(String clientName, Message message, MessageStatus status, java.time.LocalDateTime deliveredTime) {
 
     @Override
     public String toString() {

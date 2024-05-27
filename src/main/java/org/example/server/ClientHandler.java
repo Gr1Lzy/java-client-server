@@ -8,7 +8,6 @@ import java.io.*;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +40,7 @@ public class ClientHandler  {
         clientHandlers.add(this);
     }
 
-    public static void sendSpamToClients(int messageCount) {
+    public static void sendMessagesToClients(int messageCount) {
         messageStatistics = Collections.synchronizedList(new ArrayList<>());
 
         try (ExecutorService executor = Executors.newFixedThreadPool(clientHandlers.size())) {
@@ -70,6 +69,8 @@ public class ClientHandler  {
                 messageStatistics.getLast().deliveredTime());
 
         logger.log(Level.INFO, "Spam messages sent in {0} milliseconds", duration);
+        logger.log(java.util.logging.Level.INFO,
+                "Message statistics: {0}", ClientHandler.messageStatistics.size());
     }
 
     public void removeClientHandler() {
