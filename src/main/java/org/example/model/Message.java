@@ -6,18 +6,18 @@ public class Message {
     private final int id;
     private final String text;
 
-    private static AtomicInteger counter = new AtomicInteger();
+    private static final AtomicInteger COUNTER = new AtomicInteger();
 
     public Message(String text) {
-        this.id = counter.incrementAndGet();
+        id = COUNTER.incrementAndGet();
         this.text = text;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getText() {
         return text;
+    }
+
+    public int getId() {
+        return id;
     }
 }

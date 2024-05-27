@@ -1,4 +1,4 @@
-package org.example;
+package org.example.server;
 
 import java.io.*;
 import java.net.Socket;
@@ -9,16 +9,17 @@ public class Client {
     private final Socket socket;
     private final BufferedReader bufferedReader;
     private final BufferedWriter bufferedWriter;
+    private static final Scanner scanner = new Scanner(System.in);
 
     public Client(Socket socket, String text) {
-            this.socket = socket;
-            this.username = "user" + text;
+        this.socket = socket;
+        this.username = "user" + text;
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
             close();
-            throw new RuntimeException("Помилка при створенні клієнта", e);
+            throw new RuntimeException("Error creating client", e);
         }
     }
 
@@ -33,7 +34,6 @@ public class Client {
     }
 
     public void listenForMessage() {
-
         new Thread(() -> {
             String messageFromServer;
             while (socket.isConnected()) {
@@ -60,7 +60,6 @@ public class Client {
 
     public static void main(String[] args) {
         try {
-            Scanner scanner = new Scanner(System.in);
             String text = scanner.next();
             Socket socket = new Socket("localhost", 8081);
             Client client = new Client(socket, text);

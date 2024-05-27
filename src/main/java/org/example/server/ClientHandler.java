@@ -1,4 +1,4 @@
-package org.example;
+package org.example.server;
 
 import org.example.model.Message;
 import org.example.model.MessageStatistic;
@@ -10,11 +10,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class ClientHandler implements Runnable {
-    public static List<ClientHandler> clientHandlerList = new CopyOnWriteArrayList<>();
+    public static final List<ClientHandler> CLIENT_HANDLER_LIST = new CopyOnWriteArrayList<>();
     public static List<MessageStatistic> messageStatistics;
+
+    private final Logger logger = Logger.getLogger(ClientHandler.class.getName());
     private final Socket socket;
     private final BufferedReader bufferedReader;
     private final BufferedWriter bufferedWriter;
@@ -25,7 +31,7 @@ public class ClientHandler implements Runnable {
         this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         this.clientId = bufferedReader.readLine();
-        clientHandlerList.add(this);
+        CLIENT_HANDLER_LIST.add(this);
     }
 
     @Override
@@ -42,9 +48,9 @@ public class ClientHandler implements Runnable {
 
     public static void sendSpamToClients(int messageCount) {
         messageStatistics = Collections.synchronizedList(new ArrayList<>());
-        ExecutorService executor = Executors.newFixedThreadPool(clientHandlerList.size());
+        ExecutorService executor = Executors.newFixedThreadPool(CLIENT_HANDLER_LIST.size());
 
-        for (ClientHandler clientHandler : clientHandlerList) {
+        for (ClientHandler clientHandler : CLIENT_HANDLER_LIST) {
             executor.execute(() -> {
                 for (int i = 0; i < messageCount; i++) {
                     Message message = new Message("SPAM MESSAGE " + (i + 1));
@@ -67,11 +73,10 @@ public class ClientHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println(messageStatistics.size());
     }
 
     public void broadcastMessage(String message) {
-        for (ClientHandler clientHandler : clientHandlerList) {
+        for (ClientHandler clientHandler : CLIENT_HANDLER_LIST) {
             try {
                 if (!clientHandler.clientId.equals(clientId)) {
                     clientHandler.bufferedWriter.write(message);
@@ -85,7 +90,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void removeClientHandler() {
-        clientHandlerList.remove(this);
+        CLIENT_HANDLER_LIST.remove(this);
     }
 
     public void close() {

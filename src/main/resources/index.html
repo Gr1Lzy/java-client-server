@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Statistics</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 2s linear infinite;
+            margin: 50px auto 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<h1>Message Statistics</h1>
+<div id="loader" class="loader"></div>
+<table id="statisticsTable">
+    <thead>
+    <tr>
+        <th>Client Name</th>
+        <th>Message ID</th>
+        <th>Message Text</th>
+        <th>Status</th>
+        <th>Delivered Time</th>
+    </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+    async function fetchStatistics() {
+        const response = await fetch(`http://localhost:8082/messageStatistics`);
+        return response.json();
+    }
+
+    async function displayStatistics() {
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+
+        try {
+            const data = await fetchStatistics();
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(stat => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).textContent = stat.clientName;
+                row.insertCell(1).textContent = stat.message.id;
+                row.insertCell(2).textContent = stat.message.text;
+                row.insertCell(3).textContent = stat.status;
+                row.insertCell(4).textContent = stat.deliveredTime;
+            });
+        } catch (error) {
+            console.error('Error fetching statistics:', error);
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    displayStatistics();
+</script>
+
+</body>
+</html>
