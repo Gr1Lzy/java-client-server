@@ -6,10 +6,10 @@ public class Message {
     private final int id;
     private final String text;
 
-    private static int counter = 0;
+    private static AtomicInteger counter = new AtomicInteger();
 
     public Message(String text) {
-        this.id = counter++;
+        this.id = counter.incrementAndGet();
         this.text = text;
     }
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Server {
+    Scanner scanner = new Scanner(System.in);
     private final ServerSocket serverSocket;
     private final List<ClientHandler> clientHandlers = new ArrayList<>();
 
@@ -32,34 +33,22 @@ public class Server {
                 thread.start();
             }
         } catch (IOException e) {
-            closeServerSocket();
+            e.printStackTrace();
         }
     }
 
     private void getCodeWord() {
-        Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
 
         if (command.equals("CODEWORD")) {
-            for (ClientHandler clientHandler : clientHandlers) {
-                clientHandler.sendSpamToClients(1000);
-            }
+
+            ClientHandler.sendSpamToClients(1000);
         }
         for (MessageStatistic messageStatistic : ClientHandler.messageStatistics) {
             System.out.println(messageStatistic);
         }
 
         getCodeWord();
-    }
-
-    private void closeServerSocket() {
-        try {
-            if (serverSocket != null) {
-                serverSocket.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(String[] args) {

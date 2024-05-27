@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -39,9 +40,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendSpamToClients(int messageCount) {
-        messageStatistics = new ArrayList<>();
+    public static void sendSpamToClients(int messageCount) {
+        messageStatistics = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executor = Executors.newFixedThreadPool(clientHandlerList.size());
+
         for (ClientHandler clientHandler : clientHandlerList) {
             executor.execute(() -> {
                 for (int i = 0; i < messageCount; i++) {
@@ -51,7 +53,6 @@ public class ClientHandler implements Runnable {
                         clientHandler.bufferedWriter.newLine();
                         clientHandler.bufferedWriter.flush();
                         messageStatistics.add(new MessageStatistic(clientHandler.clientId, message, MessageStatus.DELIVERED, LocalDateTime.now()));
-
                     } catch (IOException e) {
                         e.printStackTrace();
                         messageStatistics.add(new MessageStatistic(clientHandler.clientId, message, MessageStatus.UNDELIVERED, null));
@@ -66,6 +67,7 @@ public class ClientHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println(messageStatistics.size());
     }
 
     public void broadcastMessage(String message) {

@@ -2,17 +2,17 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
     private final String username;
     private final Socket socket;
     private final BufferedReader bufferedReader;
     private final BufferedWriter bufferedWriter;
-    private static int counter = 0;
 
-    public Client(Socket socket) {
+    public Client(Socket socket, String text) {
             this.socket = socket;
-            this.username = "user" + ++counter;
+            this.username = "user" + text;
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -60,8 +60,10 @@ public class Client {
 
     public static void main(String[] args) {
         try {
+            Scanner scanner = new Scanner(System.in);
+            String text = scanner.next();
             Socket socket = new Socket("localhost", 8081);
-            Client client = new Client(socket);
+            Client client = new Client(socket, text);
             client.listenForMessage();
             client.sendMessage();
         } catch (IOException e) {
