@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example.model.message;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

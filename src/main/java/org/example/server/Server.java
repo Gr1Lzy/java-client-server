@@ -9,16 +9,19 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server {
     private final ServerSocket serverSocket;
     private final Scanner scanner = new Scanner(System.in);
+    private final Logger logger  = Logger.getLogger(Server.class.getName());
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
 
-    private void startHttpServer() throws IOException {
+    public void startHttpServer() throws IOException {
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(8082), 0);
         httpServer.createContext("/messageStatistics", new MessageStatisticsHandler());
         httpServer.createContext("/", new HtmlHandler());
@@ -27,7 +30,8 @@ public class Server {
     }
 
     public void startServer() {
-        System.out.println("Server started on port " + serverSocket.getLocalPort());
+        logger.log(java.util.logging.Level.INFO, "Server started on port {0}",
+                String.valueOf(serverSocket.getLocalPort()));
 
         new Thread(this::getCodeWord).start();
 
@@ -35,22 +39,21 @@ public class Server {
             startHttpServer();
             while (!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
-                System.out.println("Client joined the session!");
-                ClientHandler clientHandler = new ClientHandler(socket);
-                Thread thread = new Thread(clientHandler);
-                thread.start();
+                logger.log(java.util.logging.Level.INFO, "Client connected!");
+                new ClientHandler(socket);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e){
+            logger.log(Level.SEVERE, "Error occurred while starting server or handling client", e);
         }
     }
 
-    private void getCodeWord() {
+    public void getCodeWord() {
         String command = scanner.next();
 
-        if (command.equals("CODEWORD") && !ClientHandler.CLIENT_HANDLER_LIST.isEmpty()) {
+        if (command.equals("CODEWORD") && !ClientHandler.clientHandlers.isEmpty()) {
             ClientHandler.sendSpamToClients(1000);
-            System.out.println(ClientHandler.messageStatistics.size());
+            logger.log(java.util.logging.Level.INFO,
+                    "Message statistics: {0}", ClientHandler.messageStatistics.size());
         } else {
             getCodeWord();
         }
@@ -62,7 +65,7 @@ public class Server {
             Server server = new Server(serverSocket);
             server.startServer();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, "Failed to start the server", e);
         }
     }
 }

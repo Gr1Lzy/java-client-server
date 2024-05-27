@@ -1,14 +1,17 @@
-package org.example.server;
+package org.example.model.client;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Client {
     private final String username;
     private final Socket socket;
-    private final BufferedReader bufferedReader;
-    private final BufferedWriter bufferedWriter;
+    private static final Logger logger = Logger.getLogger(Client.class.getName());
+    private BufferedReader bufferedReader;
+    private BufferedWriter bufferedWriter;
     private static final Scanner scanner = new Scanner(System.in);
 
     public Client(Socket socket, String text) {
@@ -19,7 +22,7 @@ public class Client {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
             close();
-            throw new RuntimeException("Error creating client", e);
+            logger.log(Level.SEVERE, "Error occurred while starting server or handling client", e);
         }
     }
 
@@ -39,7 +42,7 @@ public class Client {
             while (socket.isConnected()) {
                 try {
                     messageFromServer = bufferedReader.readLine();
-                    System.out.println(messageFromServer);
+                    logger.log(Level.INFO, "Message from server: {0}", messageFromServer);
                 } catch (IOException e) {
                     close();
                     break;
@@ -54,7 +57,7 @@ public class Client {
             if (bufferedWriter != null) bufferedWriter.close();
             if (socket != null) socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error closing Client", e);
         }
     }
 
@@ -66,7 +69,7 @@ public class Client {
             client.listenForMessage();
             client.sendUsername();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error occurred while starting server or handling client", e);
         }
     }
 }
